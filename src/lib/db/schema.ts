@@ -1,6 +1,7 @@
 
-import {pgTable,varchar, serial, text, timestamp, integer} from "drizzle-orm/pg-core";
+import {pgTable,varchar, serial, text, timestamp, integer, index} from "drizzle-orm/pg-core";
 import {sql} from "drizzle-orm";
+import { id } from "zod/locales";
 
 export const users = pgTable("users", {
     id: serial("id").primaryKey(),
@@ -25,3 +26,14 @@ export const products = pgTable("products", {
     createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
     updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
 });
+
+export const warehouse = pgTable("warehouse", {
+    id: serial("id").primaryKey(),
+    name:varchar("name",{length:100}).notNull(),
+    pincode:varchar("pincode",{length:6}).notNull(),
+    createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+},(table)=>({
+    pincodeIndex: index("pincode_index").on(table.pincode)
+})  
+);

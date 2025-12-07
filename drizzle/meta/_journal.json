@@ -15,6 +15,13 @@
       "when": 1765130923152,
       "tag": "0001_jazzy_tag",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1765145086032,
+      "tag": "0002_common_goblin_queen",
+      "breakpoints": true
     }
   ]
 }
