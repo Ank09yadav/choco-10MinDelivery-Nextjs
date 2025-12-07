@@ -3,6 +3,7 @@ import { products } from '@/lib/db/schema';
 import { productSchema } from '@/lib/validators/productSchema';
 import { writeFile, mkdir, unlink } from 'node:fs/promises'; // Import mkdir and unlink
 import path from 'node:path';
+import { desc } from 'drizzle-orm';
 
 // ... imports ...
 
@@ -56,4 +57,18 @@ export async function POST(request: Request) {
     }
 
     return Response.json({ message: 'Product created successfully' }, {status: 201});
+}
+
+export async function GET() {
+    
+    try {
+         const allProducts = await db.select().from(products).orderBy(desc(products.id)); 
+          return Response.json({ products: allProducts }, {status: 200});
+
+    } catch (error) {
+        console.error("Database Retrieval Error:", error); // Log the actual error
+        return Response.json({ message: 'Failed to retrieve products.' }, {status: 500});
+    }
+   
+
 }
