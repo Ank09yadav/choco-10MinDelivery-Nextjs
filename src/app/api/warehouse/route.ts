@@ -24,3 +24,12 @@ export async function POST(request: Request) {
 
 
 }
+
+export async function GET(request: Request) {
+    try {
+        const allWarehouses= await db.select().from(warehouse);
+        return Response.json({warehouses:allWarehouses}, {status:200});
+    }catch (error) {
+        return Response.json({message:"Failed to fetch warehouses."}, {status:500});
+    }   
+}
