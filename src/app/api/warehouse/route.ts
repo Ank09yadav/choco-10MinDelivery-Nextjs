@@ -14,7 +14,7 @@ export async function POST(request: Request) {
     } catch (error) {
         return Response.json({message:error}, {status:400});
     }
-
+    // Insert into DB
     try {
         await db.insert(warehouse).values(validateData);
         return Response.json({message:"Warehouse stored successfully."}, {status:201});
