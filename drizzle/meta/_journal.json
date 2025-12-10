@@ -29,6 +29,13 @@
       "when": 1765304111711,
       "tag": "0003_ancient_crusher_hogan",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1765340698512,
+      "tag": "0004_minor_the_enforcers",
+      "breakpoints": true
     }
   ]
 }

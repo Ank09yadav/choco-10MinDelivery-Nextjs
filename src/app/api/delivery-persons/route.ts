@@ -25,7 +25,12 @@ export async function POST(request: Request) {
 
 export async function GET() {
     try {
-        const allDeliveryPersons= await db.select().from(deliveryPersons).leftJoin(warehouse,eq(deliveryPersons.warehouseId,warehouse.id)).orderBy(desc(deliveryPersons.id));
+        const allDeliveryPersons= await db.select({
+            id:deliveryPersons.id,
+            name:deliveryPersons.name,
+            phone:deliveryPersons.phone,
+            warehouse:warehouse.name
+        }).from(deliveryPersons).leftJoin(warehouse,eq(deliveryPersons.warehouseId,warehouse.id)).orderBy(desc(deliveryPersons.id));
         return Response.json({deliveryPersons:allDeliveryPersons}, {status:200});
     }catch (error) {
         return Response.json({message:"Failed to fetch delivery persons."}, {status:500});
