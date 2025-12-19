@@ -15,6 +15,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Choco 10 min deliveryApp",
   description: "nextjs , typescript , tailwindcss , shadcn/ui,cryptomouse ,phosegrese supabase",
+  icons:"ank.jpg",
 };
 
 export default function RootLayout({
