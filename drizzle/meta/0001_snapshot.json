@@ -1,6 +1,6 @@
 {
-  "id": "a36bf6aa-3c82-4c3b-b4fb-b1c88549a460",
-  "prevId": "45f898ce-9ffc-425a-962e-29eee4dc1fa9",
+  "id": "c32a81eb-a6f2-479d-80c2-f4456c246df3",
+  "prevId": "2c716440-e7ff-4757-a4d0-e439dddfc536",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -24,13 +24,13 @@
           "name": "image",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "description": {
           "name": "description",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "price": {
           "name": "price",
@@ -42,14 +42,14 @@
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "default": "CURRENT_TIMESTAMP"
         }
       },
@@ -91,7 +91,7 @@
         },
         "provider": {
           "name": "provider",
-          "type": "varchar(20)",
+          "type": "varchar(30)",
           "primaryKey": false,
           "notNull": true
         },
@@ -118,14 +118,14 @@
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "default": "CURRENT_TIMESTAMP"
         }
       },

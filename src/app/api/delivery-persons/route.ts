@@ -1,38 +1,39 @@
-import { db } from "@/lib/db/db";
-import { deliveryPersonSchema } from "@/lib/validators/deliveryPersonSchema";
-import { deliveryPersons, warehouse } from "@/lib/db/schema"; // or the correct path to your table definition
+import { db } from "@/lib/DB/db";
+import { deliveryPersons, warehouses } from "@/lib/DB/schema";
+import { deliveryPersonValidator } from "@/lib/validators/deliveryPersonValidator";
 import { desc, eq } from "drizzle-orm";
 
-export async function POST(request: Request) {
-    const requestData = await request.json();
-    let validateData ;
-    try {
-        
-        validateData= await deliveryPersonSchema.parse(requestData);
-       
 
-    } catch (error) {
-        return Response.json({message:error}, {status:400});
-    }
-    // Insert into DB
+export async function POST(request : Request){
+    const data = await request.json();
+
+    let validatedData;
+
     try {
-        await db.insert(deliveryPersons).values(validateData);
-        return Response.json({message:"Delivery person stored successfully."}, {status:201});
+        validatedData = deliveryPersonValidator.parse(data);
     } catch (error) {
-        return Response.json({message:"Failed to store delivery person."}, {status:500});
+        return Response.json({message: error}, {status: 400});
+    }
+
+    try {
+        await db.insert(deliveryPersons).values(validatedData);
+        return Response.json({message: "Delivery person created successfully"}, {status: 201});
+    } catch (error) {
+        return Response.json({message: "Failed to create delivery person"}, {status: 500});
     }
 }
 
-export async function GET() {
+export async function GET(){
     try {
-        const allDeliveryPersons= await db.select({
-            id:deliveryPersons.id,
-            name:deliveryPersons.name,
-            phone:deliveryPersons.phone,
-            warehouse:warehouse.name
-        }).from(deliveryPersons).leftJoin(warehouse,eq(deliveryPersons.warehouseId,warehouse.id)).orderBy(desc(deliveryPersons.id));
-        return Response.json({deliveryPersons:allDeliveryPersons}, {status:200});
-    }catch (error) {
-        return Response.json({message:"Failed to fetch delivery persons."}, {status:500});
+        const allDeliveryPersons = await db.select({
+            id: deliveryPersons.id,
+            name: deliveryPersons.name,
+            phone: deliveryPersons.phone,
+            warehouse: warehouses.name,
+            warehousePincode: warehouses.pincode
+        }).from(deliveryPersons).leftJoin(warehouses, eq(deliveryPersons.warehouseId, warehouses.id)).orderBy(desc(deliveryPersons.id));
+        return Response.json({deliveryPersons: allDeliveryPersons}, {status: 201});
+    } catch (error) {
+        return Response.json({message: "Failed to fetch delivery persons"}, {status: 500});
     }
 }

@@ -1,6 +1,6 @@
 {
-  "id": "b69f8818-f46a-4b28-9a59-c890599f5411",
-  "prevId": "a36bf6aa-3c82-4c3b-b4fb-b1c88549a460",
+  "id": "2324725c-0632-496e-9ed7-8990ee5df65b",
+  "prevId": "c32a81eb-a6f2-479d-80c2-f4456c246df3",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -24,13 +24,13 @@
           "name": "image",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "description": {
           "name": "description",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "price": {
           "name": "price",
@@ -42,14 +42,14 @@
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "default": "CURRENT_TIMESTAMP"
         }
       },
@@ -91,7 +91,7 @@
         },
         "provider": {
           "name": "provider",
-          "type": "varchar(20)",
+          "type": "varchar(30)",
           "primaryKey": false,
           "notNull": true
         },
@@ -118,14 +118,14 @@
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "default": "CURRENT_TIMESTAMP"
         }
       },
@@ -145,8 +145,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.warehouse": {
-      "name": "warehouse",
+    "public.warehouses": {
+      "name": "warehouses",
       "schema": "",
       "columns": {
         "id": {
@@ -163,7 +163,7 @@
         },
         "pincode": {
           "name": "pincode",
-          "type": "varchar(6)",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
@@ -171,20 +171,20 @@
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "default": "CURRENT_TIMESTAMP"
         }
       },
       "indexes": {
-        "pincode_index": {
-          "name": "pincode_index",
+        "pincode_idx": {
+          "name": "pincode_idx",
           "columns": [
             {
               "expression": "pincode",

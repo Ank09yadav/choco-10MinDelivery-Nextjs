@@ -1,75 +1,57 @@
-import { db } from '@/lib/db/db';
-import { products } from '@/lib/db/schema';
-import { productSchema } from '@/lib/validators/productSchema';
-import { writeFile, mkdir, unlink } from 'node:fs/promises'; // Import mkdir and unlink
-import path from 'node:path';
-import { desc } from 'drizzle-orm';
-
-// ... imports ...
+import { db } from "@/lib/DB/db";
+import { products } from "@/lib/DB/schema";
+import { productValidator } from "@/lib/validators/productValidator";
+import { desc } from "drizzle-orm";
+import { writeFile } from "node:fs/promises";
+import { unlink } from "node:fs/promises";
+import path from "node:path";
 
 export async function POST(request: Request) {
+    // TODO : check user access rights
+
+
     const data = await request.formData();
 
-    // ... validation logic (keep as is) ...
-    let validateData;
+    let validatedData;
     try {
-         // ... (your validation code)
-         validateData = productSchema.parse({
-            name: data.get('name'),
-            image: data.get('image'),
-            description: data.get('description'),
-            price: Number(data.get('price')),
-        });
+        validatedData = productValidator.parse({
+            name: data.get("name"),
+            image: data.get("image"),
+            description: data.get("description"),
+            price: Number(data.get("price")),
+        })
     } catch (error) {
-        return Response.json({ message: error }, {status: 400});
+        return Response.json({message: error}, {status: 400});
     }
 
-    // FIX 1: Correct Template Literal Syntax
-    // Use ${} to evaluate the expression and .pop() to get the extension string
-    const fileExtension = validateData.image.name.split('.').pop();
-    const filename = `${Date.now()}.${fileExtension}`;
+    const fileName = `${Date.now()}.${validatedData.image.name.split('.').slice(-1)}` 
 
     try {
-        const buffer = Buffer.from(await validateData.image.arrayBuffer());
-        
-        // FIX 2: Define directory and ensure it exists
-        const uploadDir = path.join(process.cwd(), 'public/assets', 'uploads');
-        
-        // This creates the folder if it doesn't exist
-        await mkdir(uploadDir, { recursive: true });
-
-        // Now write the file
-        await writeFile(path.join(uploadDir, filename), buffer);
+        const buffer = Buffer.from(await validatedData.image.arrayBuffer());
+        await writeFile(path.join(process.cwd(), "public/assets", fileName), buffer)
 
     } catch (error) {
-        console.error("Upload Error:", error); // Log the actual error to see details in terminal
-        return Response.json({ message: 'Image upload failed' }, {status: 500});
+        console.log(error);
+        return Response.json({message: "Failed to save file to fs"}, {status: 500});
     }
 
     try {
-        // ... db insertion logic (keep as is) ...
-        await db.insert(products).values({...validateData, image:`/assets/uploads/${filename}`});
+        await db.insert(products).values({ ...validatedData, image: fileName });
     } catch (error) {
-        console.error("Database Insertion Error:", error); // Log the actual error
-        // ... cleanup logic (keep as is) ...
-        await unlink(path.join(process.cwd(),'public/assets','uploads',filename));
-        return Response.json({ message: 'Failed to store product into database.' }, {status: 500});
+        await unlink(path.join(process.cwd(), "public/assets", fileName))
+        return Response.json({message: "Failed to insert product into database"}, {status: 400});
     }
 
-    return Response.json({ message: 'Product created successfully' }, {status: 201});
+    return Response.json({message: "Product created successfully"}, {status: 201}); 
 }
 
 export async function GET() {
-    
     try {
-         const allProducts = await db.select().from(products).orderBy(desc(products.id)); 
-          return Response.json({ products: allProducts }, {status: 200});
-
+        const allProducts = await db.select().from(products).orderBy(desc(products.id));
+        return Response.json({products: allProducts}, {status: 201});
     } catch (error) {
-        console.error("Database Retrieval Error:", error); // Log the actual error
-        return Response.json({ message: 'Failed to retrieve products.' }, {status: 500});
+        console.log(error);
+        return Response.json({message: "Failed to fetch products"}, {status: 500});
     }
-   
-
+    
 }
-

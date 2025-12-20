@@ -1,5 +1,5 @@
 {
-  "id": "45f898ce-9ffc-425a-962e-29eee4dc1fa9",
+  "id": "2c716440-e7ff-4757-a4d0-e439dddfc536",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -34,7 +34,7 @@
         },
         "provider": {
           "name": "provider",
-          "type": "varchar(20)",
+          "type": "varchar(30)",
           "primaryKey": false,
           "notNull": true
         },
@@ -61,14 +61,14 @@
           "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "default": "CURRENT_TIMESTAMP"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "default": "CURRENT_TIMESTAMP"
         }
       },

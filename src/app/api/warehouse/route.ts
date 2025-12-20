@@ -1,35 +1,35 @@
-import { db } from "@/lib/db/db";
-import { warehouse } from "@/lib/db/schema";
-import { warehouseSchema } from "@/lib/validators/warehouseSchema";
+import { db } from "@/lib/DB/db";
+import { warehouses } from "@/lib/DB/schema";
+import { warehouseValidator } from "@/lib/validators/warehouseValidator";
+import { desc } from "drizzle-orm";
 
-export async function POST(request: Request) {
-    const requestData = await request.json();
-    //check auth later
+export async function POST(request: Request){
+    // TODO : check user access rights
 
+    const data = await request.json();
 
-    let validateData ;
+    let validatedData;
 
     try {
-        validateData= await warehouseSchema.parse(requestData);
+        validatedData = warehouseValidator.parse(data)
     } catch (error) {
-        return Response.json({message:error}, {status:400});
-    }
-    // Insert into DB
-    try {
-        await db.insert(warehouse).values(validateData);
-        return Response.json({message:"Warehouse stored successfully."}, {status:201});
-    } catch (error) {
-        return Response.json({message:"Failed to store the warehouse."}, {status:500});
+        return Response.json({message: error}, {status: 400});
     }
 
-
-}
-
-export async function GET(request: Request) {
     try {
-        const allWarehouses= await db.select().from(warehouse);
-        return Response.json({warehouses:allWarehouses}, {status:200});
-    }catch (error) {
-        return Response.json({message:"Failed to fetch warehouses."}, {status:500});
+        await db.insert(warehouses).values(validatedData);
+        return Response.json({message: "Warehouse created successfully"}, {status: 201});   
+    } catch (error) {
+        return Response.json({message: "Failed to create warehouse"}, {status: 500});
     }   
 }
+
+export async function GET(){
+
+    try{
+        const allWarehouses = await db.select().from(warehouses);
+        return Response.json({warehouses: allWarehouses}, {status: 201});
+    }catch(error){
+        return Response.json({message: "Failed to fetch warehouses"}, {status: 500});
+    }
+} 

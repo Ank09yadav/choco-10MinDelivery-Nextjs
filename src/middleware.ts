@@ -4,7 +4,7 @@ import { withAuth } from 'next-auth/middleware'
 export default withAuth({
     callbacks: {
         authorized: ({token, req}) => {
-           // console.log("Token : ", token);
+            console.log("Token : ", token);
 
             if(req.nextUrl.pathname.startsWith("/admin")){
                 return token?.role === "admin";
@@ -16,5 +16,5 @@ export default withAuth({
 });
 
 export const config = {
-    matcher: ['/admin(/.*)?'],
+    matcher: ['/admin/:path*'],
 }
