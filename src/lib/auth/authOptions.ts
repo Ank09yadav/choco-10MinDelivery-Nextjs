@@ -8,10 +8,10 @@ export const authOptions: AuthOptions = {
     providers: [
         GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID as string,
-            clientSecret: process.env.GOGGLE_CLIENT_SECRET as string,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
             async profile(profile, token: any) {
-                console.log('profile', profile);
-                console.log('tokens', token);
+                 console.log('profile', profile);
+                // console.log('tokens', token);
 
                 const data = {
                     fname: profile.given_name,

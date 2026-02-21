@@ -3,6 +3,9 @@
 
 import { Product } from "@/http/api";
 import Image from "next/image";
+import { deleteProduct} from "@/http/api";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
 
 export default function ProductTable({ products }: { products: Product[] }) {
   return (
@@ -36,7 +39,7 @@ export default function ProductTable({ products }: { products: Product[] }) {
                 <td className="px-4 py-3">{p.updatedAt ? new Date(p.updatedAt).toLocaleDateString() : "-"}</td>
                 <td className="px-4 py-3 text-right space-x-2">
                   <button className="px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700">Update</button>
-                  <button className="px-3 py-1.5 bg-red-600 text-white rounded hover:bg-red-700">Delete</button>
+                  <button className="px-3 py-1.5 bg-red-600 text-white rounded hover:bg-red-700" onClick={() => { handleDelete(p.id) }}>Delete</button>
                 </td>
               </tr>
             ))
