@@ -10,7 +10,6 @@ import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
 import { createProduct } from "@/http/api";
 import { productValidator } from "@/lib/validators/productValidator"
-import { id } from "zod/v4/locales";
 import { useState } from "react";
 
 
@@ -154,7 +153,10 @@ const ProductPage = () => {
       </div>
 
       <div id="cp" className="z-5 w-96 h-102 bg-white shadow-2xl  transform translate-x-full transition-transform durastion-500 ease-in-out flex-col m-3 hidden absolute right-0  ">
-        <div className="flex justify-between p-4 text white"><h2>{update ? "Update Product" : "Product Details"}</h2><h3 className="cursor-pointer" onClick={() => { const el = document.getElementById("cp"); if (el) { el.classList.add("hidden") } }} >X</h3></div>
+        <div className="flex justify-between p-4 text white">
+          <h2>{update ? "Update Product" : "Product Details"}</h2>
+          <h3 className="cursor-pointer" onClick={() => { const el = document.getElementById("cp"); if (el) { el.classList.add("hidden") } }} >X</h3>
+        </div>
         <div className="flex-1 overflow-y-auto p-6">
           <form onSubmit={form.handleSubmit(handleOnSubmit)} action="">
             <div>
