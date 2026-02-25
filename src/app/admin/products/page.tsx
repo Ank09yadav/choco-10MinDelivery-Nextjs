@@ -1,7 +1,7 @@
 // app/admin/products/page.tsx (or ProductPage.tsx)
 "use client";
 
-import { deleteProduct, getAllProducts, Product } from "@/http/api";
+import { deleteProduct, getAllProducts, Product ,updateProduct} from "@/http/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import ProductTable from "./productTable";
 import { useForm } from "react-hook-form";
@@ -11,11 +11,13 @@ import { useMutation } from "@tanstack/react-query";
 import { createProduct } from "@/http/api";
 import { productValidator } from "@/lib/validators/productValidator"
 import { id } from "zod/v4/locales";
+import { useState } from "react";
 
 
 type FormValues = z.infer<typeof productValidator>;
 
 const ProductPage = () => {
+  const [update , setUpdate] = useState(false);
   const queryClient = useQueryClient();
   const { mutate: createMutate } = useMutation({
     mutationKey: ["createProduct"],
@@ -45,6 +47,25 @@ const ProductPage = () => {
     },
     onError:()=>{
       alert("Failed to delete product");
+      return false;
+    }
+  })
+  const {mutate : updateMutate} = useMutation({
+    mutationKey: ["updateProduct"],
+    mutationFn: (data: FormData)=>{
+      return updateProduct(data);
+    },
+    onSuccess:()=>{
+      queryClient.invalidateQueries({queryKey:["products"]})
+      alert("Product updated successfully");
+      const el = document.getElementById("cp");
+      if(el){
+        el.classList.add("hidden");
+      }
+      return true;
+    },
+    onError:()=>{
+      alert("Failed to update product");
       return false;
     }
   })
@@ -81,6 +102,7 @@ const ProductPage = () => {
 
   if (isLoading) return <p className="p-4">Loading...</p>;
   if (isError) return <p className="p-4 text-red-600">Failed to load products.</p>;
+  
   return (
     <div className="p-4 md:p-6">
        
@@ -99,33 +121,24 @@ const ProductPage = () => {
           }
         }} >Add Product</button>
       </div>
-      {update && (
-        <div className="absolute ">
-          <form action="">
-            <input type="text" placeholder="Name" />
-            <input type="text" placeholder="Price" />
-            <input type="text" placeholder="Description" />
-            <input type="text" placeholder="Image" />
-            <button type="submit">Update</button>
-          </form>
-        </div>
-      )}
+     
       <div id="cp" className="z-5 w-96 h-102 bg-white shadow-2xl  transform translate-x-full transition-transform durastion-500 ease-in-out flex-col m-3 hidden absolute right-0  ">
         <div className="flex justify-between p-4 text white"><h2>Product Details</h2><h3 className="cursor-pointer" onClick={() => { const el = document.getElementById("cp"); if (el) { el.classList.add("hidden") } }} >X</h3></div>
         <div className="flex-1 overflow-y-auto p-6">
           <form onSubmit={form.handleSubmit(handleOnSubmit)} action="">
-            <div>
+            (update ?<div>
               <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Product Name</label>
               <input
                 {...form.register("name")}
                 type="text"
+                value = {update ? form.watch("name") : ""}
                 placeholder="chocolate"
                 className="w-full border border-gray-300 p-2 text-black focus:outline-none focus:border-black rounded-sm"
               />
               {form.formState.errors.name && (
                 <p className="text-red-500 text-xs mt-1">{form.formState.errors.name.message as string}</p>
               )}
-            </div>
+            </div>)
 
             {/* Price */}
             <div>
