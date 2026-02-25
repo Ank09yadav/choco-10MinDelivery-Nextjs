@@ -3,7 +3,7 @@
 import { Product } from "@/http/api";
 import Image from "next/image";
 import { useState } from "react";
-export default function ProductTable({ products , onDelete }: { products: Product[] , onDelete: (id: number) => void }) {
+export default function ProductTable({ products , onDelete,onUpdate }: { products: Product[] , onDelete: (id: number) => void ,onUpdate: (id: number) => void }) {
   
 
   return (

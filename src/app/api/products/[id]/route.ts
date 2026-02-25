@@ -64,6 +64,7 @@ export async function PUT(request:Request,{params}:{params:Promise<{id:string}>}
             image: fileName,
         }).where(eq(products.id, Number(id)));
         return Response.json({message:"Product updated successfully"},{status:200});
+        
 
     } catch (error) {
         return Response.json({message:"Failed to update product"},{status:500});
