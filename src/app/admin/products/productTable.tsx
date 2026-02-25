@@ -1,14 +1,13 @@
-// app/admin/products/ProductTable.tsx
 "use client";
 
 import { Product } from "@/http/api";
 import Image from "next/image";
-import { deleteProduct} from "@/http/api";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+export default function ProductTable({ products , onDelete }: { products: Product[] , onDelete: (id: number) => void }) {
+  
 
-
-export default function ProductTable({ products }: { products: Product[] }) {
   return (
+     
     <div className="overflow-x-auto rounded-lg border bg-white">
       <table className="w-full text-sm text-left">
         <thead className="bg-gray-100 text-gray-700 uppercase text-xs">
@@ -38,8 +37,8 @@ export default function ProductTable({ products }: { products: Product[] }) {
                 <td className="px-4 py-3">₹{p.price}</td>
                 <td className="px-4 py-3">{p.updatedAt ? new Date(p.updatedAt).toLocaleDateString() : "-"}</td>
                 <td className="px-4 py-3 text-right space-x-2">
-                  <button className="px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700">Update</button>
-                  <button className="px-3 py-1.5 bg-red-600 text-white rounded hover:bg-red-700" onClick={() => { handleDelete(p.id) }}>Delete</button>
+                  <button className="px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700"onClick={()=>{onUpdate(p.id)}} >Update</button>
+                  <button className="px-3 py-1.5 bg-red-600 text-white rounded hover:bg-red-700" onClick={() => { onDelete(p.id) }}>Delete</button>
                 </td>
               </tr>
             ))

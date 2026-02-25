@@ -20,3 +20,15 @@ export async function GET(request: Request, {params} : { params: Promise<{ id: s
     }
 } 
 
+//delete a product 
+export async function DELETE(request: Request,{params}:{params:Promise<{id:string}>}) {
+    const id = (await params).id;
+    try {
+        await db.delete(products).where(eq(products.id,Number(id)));
+        return Response.json({message:"product deleted successfully"},{status:200});
+        
+    } catch (error) {
+        return Response.json({message:"Failed to delete product"},{status:500});
+    }
+    
+}

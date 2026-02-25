@@ -1,7 +1,7 @@
 // app/admin/products/page.tsx (or ProductPage.tsx)
 "use client";
 
-import { getAllProducts, Product } from "@/http/api";
+import { deleteProduct, getAllProducts, Product } from "@/http/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import ProductTable from "./productTable";
 import { useForm } from "react-hook-form";
@@ -10,13 +10,14 @@ import { z } from "zod";
 import { useMutation } from "@tanstack/react-query";
 import { createProduct } from "@/http/api";
 import { productValidator } from "@/lib/validators/productValidator"
+import { id } from "zod/v4/locales";
 
 
 type FormValues = z.infer<typeof productValidator>;
 
 const ProductPage = () => {
   const queryClient = useQueryClient();
-  const { mutate } = useMutation({
+  const { mutate: createMutate } = useMutation({
     mutationKey: ["createProduct"],
     mutationFn: (data: FormData) => {
       return createProduct(data);
@@ -26,7 +27,26 @@ const ProductPage = () => {
       alert("Product created successfully");
       const el = document.getElementById("cp");
       if (el) el.classList.add("hidden");
+    }
+  });
+  const { mutate: deleteMutate } = useMutation({
+    mutationKey: ["deleteProduct"],
+    mutationFn: (id:number)=>{
+      return deleteProduct(id);
     },
+    onSuccess:()=>{
+      queryClient.invalidateQueries({queryKey:["products"]})
+      alert("Product deleted successfully");
+      const el = document.getElementById(id.toString());
+      if(el){
+        el.remove();
+      }
+      return true;
+    },
+    onError:()=>{
+      alert("Failed to delete product");
+      return false;
+    }
   })
 
   const { data, isLoading, isError } = useQuery<Product[], Error>({
@@ -55,13 +75,15 @@ const ProductPage = () => {
       formData.append("image", fileList[0]);
     }
 
-    mutate(formData);
+    createMutate(formData);
+
   }
 
   if (isLoading) return <p className="p-4">Loading...</p>;
   if (isError) return <p className="p-4 text-red-600">Failed to load products.</p>;
   return (
     <div className="p-4 md:p-6">
+       
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold mb-4">Products</h1>
         <button className="bg-black text-white text-sm px-2 py-0.5 rounded-sm cursor-pointer hover:bg-gray-600 hover:text-red-400" onClick={() => {
@@ -77,6 +99,17 @@ const ProductPage = () => {
           }
         }} >Add Product</button>
       </div>
+      {update && (
+        <div className="absolute ">
+          <form action="">
+            <input type="text" placeholder="Name" />
+            <input type="text" placeholder="Price" />
+            <input type="text" placeholder="Description" />
+            <input type="text" placeholder="Image" />
+            <button type="submit">Update</button>
+          </form>
+        </div>
+      )}
       <div id="cp" className="z-5 w-96 h-102 bg-white shadow-2xl  transform translate-x-full transition-transform durastion-500 ease-in-out flex-col m-3 hidden absolute right-0  ">
         <div className="flex justify-between p-4 text white"><h2>Product Details</h2><h3 className="cursor-pointer" onClick={() => { const el = document.getElementById("cp"); if (el) { el.classList.add("hidden") } }} >X</h3></div>
         <div className="flex-1 overflow-y-auto p-6">
@@ -146,7 +179,9 @@ const ProductPage = () => {
           </form>
         </div>
       </div>
-      <ProductTable products={data ?? []} />
+      <ProductTable products={data ?? []}
+        onDelete={deleteMutate}
+      />
     </div>
   );
 };

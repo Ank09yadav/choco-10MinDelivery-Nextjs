@@ -23,4 +23,7 @@ export const createProduct = async (data: FormData) => {
   });
   return response.data;
 }
-
+export const deleteProduct = async (id: number) => {
+  const response = await api.delete(`/products/${id}`);
+  return response.data;
+}
