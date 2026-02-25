@@ -2,8 +2,7 @@ import { db } from "@/lib/DB/db";
 import { products } from "@/lib/DB/schema";
 import { productValidator } from "@/lib/validators/productValidator";
 import { desc } from "drizzle-orm";
-import { writeFile } from "node:fs/promises";
-import { unlink } from "node:fs/promises";
+import { unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 export async function POST(request: Request) {
