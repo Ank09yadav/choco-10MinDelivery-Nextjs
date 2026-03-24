@@ -27,14 +27,17 @@ export async function POST(request: Request) {
 export async function GET(){
 
     try{
+
         const allInventories = await db.select({
             id: inventories.id,
             sku: inventories.sku,
             warehouse: warehouses.name,
             product: products.name,
+            warehouseId: inventories.warehouseId,
+            productId: inventories.productId,
             ordersId: inventories.ordersId
-
         }
+
         ).from(inventories).leftJoin(warehouses, eq(inventories.warehouseId, warehouses.id)).leftJoin(products, eq(inventories.productId, products.id)).orderBy(desc(inventories.id));
         return Response.json({inventories: allInventories}, {status: 201});
     }catch(error){
