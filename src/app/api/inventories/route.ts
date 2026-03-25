@@ -18,7 +18,7 @@ export async function POST(request: Request) {
 
     try {
         await db.insert(inventories).values(validatedData);
-        return Response.json({message: "Inventory created successfully"}, {status: 201});   
+        return Response.json({message: "Inventory created successfully"}, {status: 200});   
     } catch (error) {
         return Response.json({message: "Failed to create inventory"}, {status: 500});
     }
@@ -39,7 +39,7 @@ export async function GET(){
         }
 
         ).from(inventories).leftJoin(warehouses, eq(inventories.warehouseId, warehouses.id)).leftJoin(products, eq(inventories.productId, products.id)).orderBy(desc(inventories.id));
-        return Response.json({inventories: allInventories}, {status: 201});
+        return Response.json({inventories: allInventories}, {status: 200});
     }catch(error){
         return Response.json({message: "Failed to fetch inventories"}, {status: 500});
     }
