@@ -28,7 +28,7 @@ export async function GET(){
 
     try{
         const allWarehouses = await db.select().from(warehouses);
-        return Response.json({warehouses: allWarehouses}, {status: 201});
+        return Response.json({warehouses: allWarehouses}, {status: 200});
     }catch(error){
         return Response.json({message: "Failed to fetch warehouses"}, {status: 500});
     }
