@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { productValidator } from "@/lib/validators/productValidator";
 import path from "path";
 import { unlink, writeFile } from "node:fs/promises";
+import { deliveryPersonValidator } from "@/lib/validators/deliveryPersonValidator";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
     const id = (await params).id;
@@ -30,4 +31,26 @@ export async function DELETE(request:Request, { params }: { params: Promise<{id:
     }
 }
 //Update delivery person 
-export async function PUT(request : Request,{params}: {params : Promise<{id: string}>})
+export async function PUT(request : Request,{params}: {params : Promise<{id: string}>}){
+    const id = (await params).id;
+    const body = request.formData();
+    let validateData;
+    
+        try {
+            validateData = deliveryPersonValidator.parse({
+                name: (await body).get("name"),
+                phone:(await body).get("phone"),
+                warehouseId: (await body).get("warehouseId")
+            });
+            const updateData: any ={
+                name:validateData.name,
+                phone:validateData.phone,
+                warehouseId:validateData.warehouseId
+            }
+            await db.update(deliveryPersons).set(updateData).where(eq(deliveryPersons.id,Number(id)));
+            return Response.json({message:"Details update successfully."},{status:200});
+        } catch (error) {
+            console.error(error);
+            return Response.json({message:"Failed to update delivery person"},{status:500})
+        }  
+}
