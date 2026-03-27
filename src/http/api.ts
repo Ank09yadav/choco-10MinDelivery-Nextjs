@@ -1,4 +1,5 @@
 
+import DeliveryPersonTable from "@/app/admin/deliver-persons/deliveryPersonTable";
 import { api } from "./client"
 
 
@@ -26,6 +27,15 @@ export type Inventory = {
   warehouseId?: number;
   productId?: number;
 };
+
+export type DeliveryPerson = {
+  id: number;
+  name: string;
+  email: string ;
+  phone: string;
+  warehouseId: number;
+  orderId:number;
+}
 
 export const getAllProducts = async (): Promise<Product[]> => {
   const response = await api.get<{ products: Product[] }>("/products");
@@ -95,4 +105,25 @@ export const updateInventory = async (id: number, data: { sku: string; warehouse
 export const deleteInventory = async (id: number) => {
   const response = await api.delete(`/inventories/${id}`);
   return response.data;
-}
+}
+
+// Delivery Person API
+export const getAllDeliveryPersons = async (): Promise<DeliveryPerson[]> => {
+  const response = await api.get<{ deliveryPersons: DeliveryPerson[]}>("/delivery-persons");
+  return response.data.deliveryPersons ?? [];
+}
+
+export const createDeliveryPerson = async (data: { name: string; email: string; phone: string; warehouseId: number; orderId: number }) => {
+  const response = await api.post("/delivery-persons", data);
+  return response.data;
+}
+
+export const updateDeliveryPerson = async (id: number, data :{ name : string , email:string, phone:string, orderId:number} ) => {
+  const response = await api.put(`/delivery-persons/${id}`, data);
+  return response.data;
+}
+
+export const deleteDeliveryPerson = async (id: number) => {
+  const response = await api.delete(`/delivery-persons/${id}`);
+  return response.data;
+}
