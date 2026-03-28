@@ -31,10 +31,10 @@ export type Inventory = {
 export type DeliveryPerson = {
   id: number;
   name: string;
-  email: string ;
   phone: string;
-  warehouseId: number;
-  orderId:number;
+  warehouseId?: number;
+  warehouse?: string;
+  warehousePincode?: number;
 }
 
 export const getAllProducts = async (): Promise<Product[]> => {
@@ -113,12 +113,12 @@ export const getAllDeliveryPersons = async (): Promise<DeliveryPerson[]> => {
   return response.data.deliveryPersons ?? [];
 }
 
-export const createDeliveryPerson = async (data: { name: string; email: string; phone: string; warehouseId: number; orderId: number }) => {
+export const createDeliveryPerson = async (data: { name: string; phone: string; warehouseId: number }) => {
   const response = await api.post("/delivery-persons", data);
   return response.data;
 }
 
-export const updateDeliveryPerson = async (id: number, data :{ name : string , email:string, phone:string, orderId:number} ) => {
+export const updateDeliveryPerson = async (id: number, data :{ name : string , phone:string, warehouseId:number} ) => {
   const response = await api.put(`/delivery-persons/${id}`, data);
   return response.data;
 }
