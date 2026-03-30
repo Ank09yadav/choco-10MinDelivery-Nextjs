@@ -238,4 +238,4 @@ const DeliveryPersonsPage = () => {
     )
 }
 
-export default DeliveryPersonsPage
+export default DeliveryPersonsPage
