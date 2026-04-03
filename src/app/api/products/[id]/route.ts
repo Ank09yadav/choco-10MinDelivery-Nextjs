@@ -16,7 +16,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
             return Response.json({ message: "Product not found" }, { status: 404 });
         }
 
-        return Response.json(product[0], { status: 201 });
+        return Response.json(product[0], { status: 200 });
     } catch (error) {
         return Response.json({ message: "Failed to fetch product" }, { status: 500 });
     }
