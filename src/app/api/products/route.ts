@@ -1,7 +1,7 @@
 import { db } from "@/lib/DB/db";
 import { products } from "@/lib/DB/schema";
 import { productValidator } from "@/lib/validators/productValidator";
-import { desc } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -42,20 +42,33 @@ export async function POST(request: Request) {
             return Response.json({ message: `Failed to insert product into database: ${error.message}` }, { status: 400 });
         }
 
-        return Response.json({ message: "Product created successfully" }, { status: 201 });
+        return Response.json({ message: "Product created successfully" }, { status: 200 });
     } catch (e: any) {
         console.error("Global POST Error: ", e);
         return Response.json({ message: `Internal Server Error: ${e.message}`, stack: e.stack }, { status: 500 });
     }
 }
 
-export async function GET() {
+
+export async function GET(request: Request) {
     try {
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get("id");
+
+        if (id) {
+             const product = await db.select().from(products).where(eq(products.id, Number(id)));
+
+            if (product.length === 0) {
+                return Response.json({ message: "Product not found" }, { status: 404 });
+            }
+
+            return Response.json(product[0], { status: 200 });
+        }
+
         const allProducts = await db.select().from(products).orderBy(desc(products.id));
-        return Response.json({ products: allProducts }, { status: 201 });
+        return Response.json({ products: allProducts }, { status: 200 });
     } catch (error) {
         console.log(error);
-        return Response.json({ message: "Failed to fetch products" }, { status: 500 });
+        return Response.json({ message: "Failed to fetch product" }, { status: 500 });
     }
-
 }
