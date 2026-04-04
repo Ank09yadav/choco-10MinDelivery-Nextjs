@@ -35,14 +35,19 @@ export const authOptions: AuthOptions = {
                     console.log(error);
                     return {
                         id: "",
+                        role: "customer"
                     }
                 }
             },
         }),
     ],
     callbacks: {
-        session(data: any) {
-            return data;
+        session({ session, token }: { session: any; token: any }) {
+            if (session.user) {
+                session.user.id = token.id;
+                session.user.role = token.role;
+            }
+            return session;
         },
         jwt({ token, user }: { token: any; user: any }) {
             if (user) {

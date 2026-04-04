@@ -9,16 +9,66 @@ import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useRouter } from 'next/navigation'
+import { useForm } from 'react-hook-form'
+import { orderSchema } from '@/lib/validators/orderSchema'
+import { z } from 'zod'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { toast } from 'sonner'
+import { useSession } from 'next-auth/react'
+import Link from 'next/link'
+import { SubmitHandler } from 'react-hook-form'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { createOrder, Order } from '@/http/api'
 
+type OrderFormData = z.infer<typeof orderSchema>;
 
-const SignleProductPage = () => {
+const SingleProductPage = () => {
   const params = useParams()
   const router = useRouter()
+  const queryClient = useQueryClient()
+
+  const {data:session} = useSession();
+
+
+
   const {data:product,isLoading}=useQuery<Product>({
     queryKey:['product',params.id],
     queryFn:()=>getProductById(Number(params.id))
 
   })
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: createOrder,
+    onSuccess: () => {
+      toast.success("Order placed successfully");
+      queryClient.invalidateQueries({ queryKey: ["orders"] })
+      form.reset()
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to place order")
+    }
+  })
+  
+  const form = useForm<OrderFormData>({
+    resolver: zodResolver(orderSchema),
+    defaultValues: {
+      productId: Number(params.id),
+      pincode: "",
+      quantity: 1,
+      address: "",
+      deliveryPersonId: 1,
+      warehouseId: 1,
+      userId: session?.user?.id ? Number(session.user.id) : 0,
+      status: "pending",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+  })
+
+  const onSubmit: SubmitHandler<OrderFormData> = (data) => {
+    if (!session) return toast.error("Please login to place an order")
+    mutate(data as Order)
+  }
  
   return (
     <>
@@ -71,9 +121,9 @@ const SignleProductPage = () => {
                   </div>
                 ) : (
                   <div className='h-full flex flex-col'>
-                    <div className="mb-4">
+                    {/* <div className="mb-4">
                       <span className='px-3 py-1 bg-rose-50 text-rose-600 text-[10px] font-bold tracking-widest uppercase rounded-md'>Direct from farm</span>
-                    </div>
+                    </div> */}
                     <h2 className='text-4xl md:text-5xl font-black text-gray-900 mb-3 leading-tight'>
                       {product?.name}
                     </h2>
@@ -92,13 +142,66 @@ const SignleProductPage = () => {
                       <p className='text-gray-500 text-lg leading-relaxed font-medium'>{product?.description || "Experience the direct from farm freshness with our premium selection. Handpicked and delivered to your doorstep within 10 minutes."}</p>
                     </div>
 
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label htmlFor="pincode" className="block text-sm font-medium text-gray-700 mb-2">Pincode</label>
+                          <input
+                            type="text"
+                            id="pincode"
+                            {...form.register("pincode")}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none transition-all"
+                            placeholder="Enter your pincode"
+                          />
+                          {form.formState.errors.pincode && (
+                            <p className="text-red-500 text-sm mt-1">{form.formState.errors.pincode.message}</p>
+                          )}
+                        </div>
+                        <div>
+                          <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
+                          <input
+                            type="number"
+                            id="quantity"
+                            {...form.register("quantity",{
+                              valueAsNumber:true
+                            })}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none transition-all"
+                            placeholder="Enter quantity"
+                            min="1"
+                          />
+                          {form.formState.errors.quantity && (
+                            <p className="text-red-500 text-sm mt-1">{form.formState.errors.quantity.message}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                        <textarea
+                          id="address"
+                          {...form.register("address")}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none transition-all resize-none"
+                          rows={2}
+                          placeholder="Enter your full address"
+                        />
+                        {form.formState.errors.address && (
+                          <p className="text-red-500 text-sm mt-1">{form.formState.errors.address.message}</p>
+                        )}
+                      </div>
+                      {session? <Button disabled={isPending} type="submit" size="lg" className='h-16 px-10 rounded-2xl text-lg font-bold border-2 border-gray-200 hover:bg-gray-50 transition-all hover:-translate-y-1 active:translate-y-0'>
+                        {isPending ? "Processing..." : "Buy Now"}
+                      </Button> : <Link href={"/auth/signin"} className='h-16 px-10 rounded-2xl text-lg font-bold border-2 border-gray-200 hover:bg-gray-50 transition-all hover:-translate-y-1 active:translate-y-0'>
+                        Login to Buy
+                      </Link> }
+
+                   
+                    </form>
+
                     <div className="mt-auto flex flex-col sm:flex-row gap-4 pt-4">
-                      <Button size="lg" className='h-16 px-10 bg-gray-900 hover:bg-black text-white rounded-2xl text-lg font-bold shadow-xl shadow-gray-200 transition-all hover:-translate-y-1 active:translate-y-0'>
+                      {/* <Button size="lg" className='h-16 px-10 bg-gray-900 hover:bg-black text-white rounded-2xl text-lg font-bold shadow-xl shadow-gray-200 transition-all hover:-translate-y-1 active:translate-y-0'>
                         Add to Cart
-                      </Button>
-                      <Button variant="outline" size="lg" className='h-16 px-10 rounded-2xl text-lg font-bold border-2 border-gray-200 hover:bg-gray-50 transition-all hover:-translate-y-1 active:translate-y-0'>
-                        Buy Now
-                      </Button>
+                      </Button> */}
+                      
                     </div>
                   </div>
                 )}
@@ -111,4 +214,4 @@ const SignleProductPage = () => {
   )
 }
 
-export default SignleProductPage
+export default SingleProductPage

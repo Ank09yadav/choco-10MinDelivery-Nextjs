@@ -37,6 +37,19 @@ export type DeliveryPerson = {
   warehousePincode?: number;
 }
 
+export type Order = {
+  id?: number;
+  productId: number;
+  pincode: string;
+  quantity: number;
+  address: string;
+  userId: number;
+  status?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+
 export const getAllProducts = async (): Promise<Product[]> => {
   const response = await api.get<{ products: Product[] }>("/products");
   return response.data.products ?? [];
@@ -130,3 +143,14 @@ export const deleteDeliveryPerson = async (id: number) => {
   const response = await api.delete(`/delivery-persons/${id}`);
   return response.data;
 }
+
+// Order API
+export const getAllOrders = async (): Promise<any[]> => {
+  const response = await api.get<{ orders: any[] }>("/orders");
+  return response.data.orders ?? [];
+}
+export const createOrder = async (data: Order) => {
+
+  const response = await api.post("/orders", data);
+  return response.data;
+}
