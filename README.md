@@ -10,53 +10,6 @@ Choco leverages a hyper-local logistics engine. Instead of querying a global cat
 
 The diagram below details the end-to-end flow of order placement, local warehouse routing, real-time stock verification, and automated driver dispatch:
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Customer as Client / Frontend
-    participant API as Order API Endpoint
-    database DB as PostgreSQL (Drizzle)
-    participant Agent as Delivery Fleet
-
-    Customer->>API: Submit Order (UserID, ProductID, Pincode, Address, Qty)
-    rect rgb(240, 248, 255)
-        note right of API: Pincode Routing Phase
-        API->>DB: Query Warehouse associated with client Pincode
-        DB-->>API: Return Warehouse details
-        alt No Warehouse Found
-            API-->>Customer: Abort: "Sorry, we don't deliver to this area yet."
-        end
-    end
-
-    rect rgb(255, 240, 245)
-        note right of API: Regional Stock Check Phase
-        API->>DB: Query local Inventory (Warehouse ID + Product ID)
-        DB-->>API: Return Stock presence
-        alt Product Out of Stock
-            API-->>Customer: Abort: "Product out of stock in your area."
-        end
-    end
-
-    rect rgb(240, 255, 240)
-        note right of API: Dispatch Assignment Phase
-        API->>DB: Query first available Delivery Partner at Warehouse
-        DB-->>API: Return Delivery Partner details
-        alt No Drivers Available
-            API-->>Customer: Abort: "No delivery partners available at the moment."
-        end
-    end
-
-    rect rgb(255, 255, 240)
-        note right of API: Transaction Execution
-        API->>DB: Insert new Order (status: "received")
-        DB-->>API: Confirm Order record
-        API->>DB: Assign Order ID to Delivery Partner
-        DB-->>API: Confirm Partner Assignment
-        API-->>Customer: Return 201: "Order placed successfully"
-    end
-    API->>Agent: Alert driver for pickup & dispatch
-```
-
 ---
 
 ## 🛠️ Tech Stack & Dependencies
