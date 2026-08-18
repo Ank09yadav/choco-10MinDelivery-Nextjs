@@ -1,36 +1,195 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🍫 Choco - 10-Minute Hyper-Local Delivery Platform
 
-## Getting Started
+Choco is a high-performance, hyper-local instant (10-minute) delivery platform. Built with a modern technical stack featuring **Next.js 16 (App Router)**, **React 19**, **Drizzle ORM**, **PostgreSQL**, and **Tailwind CSS v4**, Choco implements the complex mechanics of real-time inventory allocation, pincode-based dark-store routing, and automated courier dispatching.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🚀 Architectural Overview & Order Lifecycle
+
+Choco leverages a hyper-local logistics engine. Instead of querying a global catalog, the system determines product availability and dispatch capability based on the customer's geographical location (pincode). 
+
+The diagram below details the end-to-end flow of order placement, local warehouse routing, real-time stock verification, and automated driver dispatch:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Customer as Client / Frontend
+    participant API as Order API Endpoint
+    database DB as PostgreSQL (Drizzle)
+    participant Agent as Delivery Fleet
+
+    Customer->>API: Submit Order (UserID, ProductID, Pincode, Address, Qty)
+    rect rgb(240, 248, 255)
+        note right of API: Pincode Routing Phase
+        API->>DB: Query Warehouse associated with client Pincode
+        DB-->>API: Return Warehouse details
+        alt No Warehouse Found
+            API-->>Customer: Abort: "Sorry, we don't deliver to this area yet."
+        end
+    end
+
+    rect rgb(255, 240, 245)
+        note right of API: Regional Stock Check Phase
+        API->>DB: Query local Inventory (Warehouse ID + Product ID)
+        DB-->>API: Return Stock presence
+        alt Product Out of Stock
+            API-->>Customer: Abort: "Product out of stock in your area."
+        end
+    end
+
+    rect rgb(240, 255, 240)
+        note right of API: Dispatch Assignment Phase
+        API->>DB: Query first available Delivery Partner at Warehouse
+        DB-->>API: Return Delivery Partner details
+        alt No Drivers Available
+            API-->>Customer: Abort: "No delivery partners available at the moment."
+        end
+    end
+
+    rect rgb(255, 255, 240)
+        note right of API: Transaction Execution
+        API->>DB: Insert new Order (status: "received")
+        DB-->>API: Confirm Order record
+        API->>DB: Assign Order ID to Delivery Partner
+        DB-->>API: Confirm Partner Assignment
+        API-->>Customer: Return 201: "Order placed successfully"
+    end
+    API->>Agent: Alert driver for pickup & dispatch
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🛠️ Tech Stack & Dependencies
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Layer | Technology | Purpose |
+| :--- | :--- | :--- |
+| **Framework** | [Next.js 16.0.3 (App Router)](file:///c:/choco-10MinDelivery-Nextjs/package.json#L41) | Server-side rendering, API routes, and optimized routing |
+| **Frontend Runtime** | [React 19.2.0](file:///c:/choco-10MinDelivery-Nextjs/package.json#L47) | Concurrent UI rendering and component architecture |
+| **Database ORM** | [Drizzle ORM v0.44.7](file:///c:/choco-10MinDelivery-Nextjs/package.json#L39) | Type-safe SQL schema definition and query generation |
+| **Database** | PostgreSQL | Relational database storage with indexation support |
+| **State Management** | [TanStack React Query v5](file:///c:/choco-10MinDelivery-Nextjs/package.json#L33) | Client-side caching, optimistic state updates, and polling |
+| **Authentication** | [NextAuth v4.24.13](file:///c:/choco-10MinDelivery-Nextjs/package.json#L42) | Secure authentication with Google OAuth integration |
+| **Security Layer** | Custom Middleware | Role-Based Access Control (RBAC) protecting admin paths |
+| **Styling & UI** | Tailwind CSS v4 & Radix UI | Utility-first styling with responsive, accessible primitives |
+| **Validation** | Zod | Runtime type safety and schema validation (API & Forms) |
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 🏗️ Core Engineering Challenges & Solutions
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 1. Pincode-Based Dark-store Mapping
+* **Complexity**: Delivery must happen within 10 minutes, necessitating micro-fulfillment centers (dark-stores) serving strict local zones.
+* **Implementation**: The [`warehouses`](file:///c:/choco-10MinDelivery-Nextjs/src/lib/db/schema.ts#L27) table maps specific dark-stores to service areas via pincode columns. A database index is maintained on the `pincode` field to allow sub-millisecond retrieval of the dispatching warehouse during checkout.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 2. Regional Inventory Partitioning
+* **Complexity**: Stock values differ by location. E.g., chocolate might be in stock in Warehouse A but completely depleted in Warehouse B.
+* **Implementation**: The [`inventories`](file:///c:/choco-10MinDelivery-Nextjs/src/lib/db/schema.ts#L62) table acts as a join table linking individual product SKUs to specific warehouse locations. The order endpoint performs verification against localized stock tables before finalizing transactions, avoiding order-cancellation overheads.
 
-## Deploy on Vercel
+### 3. Automated Courier Dispatch
+* **Complexity**: Instant delivery requires immediately securing a courier.
+* **Implementation**: When an order passes stock validation, the system queries the [`deliveryPersons`](file:///c:/choco-10MinDelivery-Nextjs/src/lib/db/schema.ts#L52) table for a courier who is registered at that matching warehouse and is not currently delivering another order (`orderId` is null). This partner is immediately bound to the order ID, locking their availability state.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 4. Admin Middleware and Protected Client Routing
+* **Complexity**: Administrative dashboards must be inaccessible to standard customers.
+* **Implementation**: Built a custom authorization middleware layer in [`proxy.ts`](file:///c:/choco-10MinDelivery-Nextjs/src/proxy.ts) using NextAuth JWT inspection. It matches all paths under `/admin/:path*` and checks `token.role === "admin"`. If a user fails the check, routing is blocked at the edge.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## 📁 Repository Structure
+
+```
+choco-10MinDelivery-Nextjs/
+├── drizzle/                     # Drizzle SQL migration files
+├── public/                      # Static assets and uploaded product assets
+│   └── assets/                  # Product images uploaded by administrators
+├── src/
+│   ├── app/                     # Next.js App Router (Routing Pages & APIs)
+│   │   ├── (client)/            # E-commerce frontend portal (Pages & Components)
+│   │   │   ├── product/[id]/    # Pincode validation & Single Product view
+│   │   │   └── _components/     # Modular client widgets (Hero, Header, Footer)
+│   │   ├── admin/               # Administrator Console
+│   │   │   ├── products/        # Product administration (CRUD panel)
+│   │   │   ├── warehouses/      # Dark-store setup
+│   │   │   ├── deliver-persons/ # Fleet registry management
+│   │   │   ├── orders/          # Live order monitors
+│   │   │   └── inventories/     # SKU Stock tracking
+│   │   └── api/                 # Next.js Serverless API endpoints
+│   ├── components/              # Shared reusable components (Shadcn UI)
+│   ├── http/                    # Axios clients & React Query API wrappers
+│   │   ├── client.ts            # Network client configuration
+│   │   └── api.ts               # Server endpoint contract hooks
+│   ├── lib/
+│   │   ├── auth/                # NextAuth session rules & OAuth hooks
+│   │   ├── db/                  # Drizzle client, Connection pool, & Schemas
+│   │   └── validators/          # Zod schema definitions for request parsing
+│   ├── provider/                # Session & Query Context Providers
+│   ├── types/                   # Ambient TypeScript declaration files
+│   └── proxy.ts                 # NextAuth Middleware route protection Rules
+├── drizzle.config.ts            # Configuration rules for migrations
+├── migrate.ts                   # Drizzle standalone execution migration runner
+├── package.json                 # Project manifest & command scripts
+└── tsconfig.json                # TypeScript configurations
+```
+
+---
+
+## 🗄️ Database Entity-Relationship Model
+
+The PostgreSQL database structure is managed entirely through Drizzle schemas located in [`src/lib/db/schema.ts`](file:///c:/choco-10MinDelivery-Nextjs/src/lib/db/schema.ts). Below is a mapping of how the relations are structured:
+
+* **`users`**: Contains account profiles (FName, LName, Email, Provider, Avatar Image) and user `role` (defaulting to `"customer"`, updatable to `"admin"`).
+* **`products`**: Catalog table storing product name, description, price, and local asset image path.
+* **`warehouses`**: Dark-stores indexed by their serviceable `pincode`.
+* **`orders`**: Links a `userId` to a `productId` with delivery details (quantity, address, status, and pincode).
+* **`deliveryPersons`**: Fleet agents stationed at a specific `warehouse_id`. Includes a nullable reference to `order_id` indicating their current dispatch load.
+* **`inventories`**: Tracks stock units (SKUs) of a specific `product_id` located inside a `warehouse_id`. Includes an optional linkage to an `orders_id` to bind inventory units to specific checkout records.
+
+---
+
+## ⚙️ Development Setup Guide
+
+Follow these steps to run a copy of this project locally.
+
+### 1. Prerequisites
+Ensure you have the following installed on your machine:
+* **Node.js** (v18.x or v20.x+ recommended)
+* **PostgreSQL** database server running locally or hosted online (e.g. Supabase, Neon)
+
+### 2. Project Installation
+Clone the repository and install the project dependencies:
+```bash
+npm install
+```
+
+### 3. Setup Environment Variables
+Create a file named `.env.local` in the project root directory. Use the structure provided in the [`.env.example`](file:///c:/choco-10MinDelivery-Nextjs/.env.example) file:
+```env
+DATABASE_URL=postgresql://username:password@localhost:5432/choco_db
+NEXT_PUBLIC_BACKEND_URL=http://localhost:3000/api
+GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+NEXTAUTH_SECRET=your-random-generated-secret-string
+NEXTAUTH_URL=http://localhost:3000
+```
+> [!NOTE]
+> Make sure to replace the values above with your local database connection credentials and Google Cloud Developer Console credentials.
+
+### 4. Database Migrations
+Run the following scripts to generate and run Drizzle migrations:
+
+* **Generate Migration files**: parses schema updates and writes SQL migration scripts to the `drizzle/` directory:
+  ```bash
+  npm run db:generate
+  ```
+
+* **Execute Migrations**: applies the SQL changes directly to your PostgreSQL database:
+  ```bash
+  npm run db:run
+  ```
+
+### 5. Running the Application
+Start the Next.js development server:
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) in your browser to interact with the customer landing portal, and navigate to `/admin` to access the administrator command center (Google account authentication required).
